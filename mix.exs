@@ -14,8 +14,7 @@ defmodule Batteries.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :ssl],
-      mod: {Batteries.Application, []}
+      extra_applications: [:logger, :ssl, :inets]
     ]
   end
 
@@ -29,13 +28,13 @@ defmodule Batteries.MixProject do
 
   defp compile(_) do
     vendor([
-      {"jason", "Jason"},
-      {"finch", "Finch"},
-      {"castore", "CAStore"},
-      {"mint", "Mint"},
-      {"nimble_options", "NimbleOptions"},
-      {"nimble_pool", "NimblePool"},
-      {"telemetry", "telemetry"}
+      {"jason", "Jason"}
+      # {"finch", "Finch"},
+      # {"castore", "CAStore"},
+      # {"mint", "Mint"}
+      # {"nimble_options", "NimbleOptions"},
+      # {"nimble_pool", "NimblePool"},
+      # {"telemetry", "telemetry"}
     ])
   end
 
@@ -58,30 +57,18 @@ defmodule Batteries.MixProject do
         not File.dir?(path) do
       relative_path = Path.relative_to(path, "deps/#{name}")
       [root | rest] = Path.split(relative_path)
-      new_path = Path.join([root, "vendored" | rest])
+      new_path = Path.join([root, "vendored", name | rest])
       File.mkdir_p!(Path.dirname(new_path))
 
       code = File.read!(path)
 
       code =
-        if Path.extname(path) == ".ex" do
-          code =
-            Enum.reduce(modules, code, fn module, acc ->
-              # naive check if it's erlang module
-              new_module =
-                if String.downcase(module) == module do
-                  "batteries_#{module}"
-                else
-                  "Batteries.#{module}"
-                end
+        Enum.reduce(modules, code, fn module, acc ->
+          new_module = "Batteries.#{module}"
+          String.replace(acc, module, new_module)
+        end)
 
-              String.replace(acc, module, new_module)
-            end)
-
-          "# vendored from #{name} #{version}\n" <> code
-        else
-          code
-        end
+      code = "# vendored from #{name} #{version}\n\n" <> code
 
       cond do
         not File.exists?(new_path) ->
@@ -98,13 +85,7 @@ defmodule Batteries.MixProject do
 
   defp deps do
     [
-      {:jason, "~> 1.0", only: [:dev]},
-      {:finch, "~> 0.5.0", only: [:dev]},
-      {:castore, "~> 0.1", only: [:dev]},
-      {:mint, "~> 1.2", only: [:dev]},
-      {:nimble_options, "~> 0.3.5", only: [:dev]},
-      {:nimble_pool, "~> 0.2", only: [:dev]},
-      {:telemetry, "~> 0.4", only: [:dev]}
+      {:jason, "~> 1.0", only: [:dev]}
     ]
   end
 end

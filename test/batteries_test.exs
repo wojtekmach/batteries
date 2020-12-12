@@ -4,7 +4,8 @@ defmodule BatteriesTest do
   test "batteries" do
     use Batteries
 
-    Requests.get("https://hex.pm/api")
+    Requests.get!("https://httpbin.org/json").body
+    |> Jason.decode!()
     |> IO.inspect()
   end
 end
